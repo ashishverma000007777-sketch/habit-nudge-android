@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -25,6 +24,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.habitnudge.app.ui.theme.Dimens
+import com.habitnudge.app.ui.theme.LocalGlassPalette
 import com.habitnudge.app.ui.theme.SuccessGreen
 
 @Composable
@@ -34,19 +34,21 @@ fun CompletionButton(
     modifier: Modifier = Modifier,
     size: Dp = Dimens.minTouchTarget
 ) {
+    val glass = LocalGlassPalette.current
+
     val scale by animateFloatAsState(
-        targetValue = if (isCompleted) 1.05f else 1.0f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = 400f),
+        targetValue = if (isCompleted) 1.04f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 420f),
         label = "scaleAnimation"
     )
 
     val bgColor by animateColorAsState(
-        targetValue = if (isCompleted) SuccessGreen else Color.Transparent,
+        targetValue = if (isCompleted) SuccessGreen else glass.surfaceLow,
         label = "bgColorAnimation"
     )
 
     val borderColor by animateColorAsState(
-        targetValue = if (isCompleted) SuccessGreen else MaterialTheme.colorScheme.outline,
+        targetValue = if (isCompleted) SuccessGreen else glass.borderHighlight,
         label = "borderColorAnimation"
     )
 
@@ -64,17 +66,17 @@ fun CompletionButton(
     ) {
         Box(
             modifier = Modifier
-                .size(size - 12.dp)
+                .size(size - 14.dp)
                 .background(bgColor, CircleShape)
-                .border(2.dp, borderColor, CircleShape),
+                .border(1.5.dp, borderColor, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             if (isCompleted) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Completed",
-                    tint = MaterialTheme.colorScheme.background,
-                    modifier = Modifier.size(20.dp)
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp)
                 )
             }
         }

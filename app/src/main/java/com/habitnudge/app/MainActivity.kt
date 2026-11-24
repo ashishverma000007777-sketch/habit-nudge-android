@@ -13,8 +13,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
+import com.habitnudge.app.data.backup.BackupRestoreManager
 import com.habitnudge.app.data.preferences.AppTheme
 import com.habitnudge.app.data.preferences.UserPreferencesRepository
 import com.habitnudge.app.data.repository.HabitRepository
@@ -50,18 +52,17 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var notificationHelper: NotificationHelper
 
+    @Inject
+    lateinit var backupRestoreManager: BackupRestoreManager
+
     private val requestNotificationPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
-            // Permission result handled gracefully
-        }
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { _ -> }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Stop any ringing repeating alarm when user opens the app
         HabitAlarmSoundService.stopAlarm(this)
 
-        // Request notification permission on Android 13+ (API 33+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     this,
@@ -79,7 +80,10 @@ class MainActivity : ComponentActivity() {
             val currentTheme = userSettings?.theme ?: AppTheme.DARK
 
             HabitNudgeTheme(appTheme = currentTheme) {
-                Surface(modifier = Modifier.fillMaxSize()) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = Color.Transparent
+                ) {
                     val navController = rememberNavController()
                     HabitNudgeNavHost(
                         navController = navController,
@@ -89,6 +93,7 @@ class MainActivity : ComponentActivity() {
                         preferencesRepository = preferencesRepository,
                         alarmScheduler = alarmScheduler,
                         notificationHelper = notificationHelper,
+                        backupRestoreManager = backupRestoreManager,
                         startDestination = if (habitIdExtra != null) Screen.HabitDetail.createRoute(habitIdExtra) else Screen.Splash.route
                     )
                 }
@@ -99,7 +104,6 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        // Stop any ringing repeating alarm when reopened via notification tap
         HabitAlarmSoundService.stopAlarm(this)
     }
 }

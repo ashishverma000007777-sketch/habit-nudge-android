@@ -1,16 +1,18 @@
 package com.habitnudge.app.ui.screens.splash
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,8 +28,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.habitnudge.app.R
 import com.habitnudge.app.data.preferences.UserPreferencesRepository
+import com.habitnudge.app.ui.components.FrostedGlassCard
+import com.habitnudge.app.ui.components.GlassBackdrop
+import com.habitnudge.app.ui.components.GlassTier
 import com.habitnudge.app.ui.navigation.Screen
 import com.habitnudge.app.ui.theme.AccentOrange
+import com.habitnudge.app.ui.theme.LocalGlassPalette
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 
@@ -36,13 +42,14 @@ fun SplashScreen(
     preferencesRepository: UserPreferencesRepository,
     onNavigate: (String) -> Unit
 ) {
-    val scale = remember { Animatable(0.85f) }
+    val glass = LocalGlassPalette.current
+    val scale = remember { Animatable(0.90f) }
     val alpha = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
-        alpha.animateTo(1f, animationSpec = tween(600))
-        scale.animateTo(1f, animationSpec = tween(600))
-        delay(1200)
+        alpha.animateTo(1f, animationSpec = tween(550, easing = FastOutSlowInEasing))
+        scale.animateTo(1f, animationSpec = tween(550, easing = FastOutSlowInEasing))
+        delay(950)
 
         val settings = preferencesRepository.userSettingsFlow.first()
         if (settings.isOnboardingCompleted) {
@@ -52,43 +59,51 @@ fun SplashScreen(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .scale(scale.value)
-                .alpha(alpha.value)
+    GlassBackdrop {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_habit_nudge_logo),
-                contentDescription = "Habit Nudge Logo",
-                modifier = Modifier.size(124.dp)
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .scale(scale.value)
+                    .alpha(alpha.value)
+            ) {
+                FrostedGlassCard(
+                    tier = GlassTier.High,
+                    shape = RoundedCornerShape(34.dp),
+                    accentBorderColor = AccentOrange.copy(alpha = 0.35f),
+                    contentPadding = PaddingValues(18.dp),
+                    shadowElevation = 16.dp
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_habit_nudge_logo),
+                        contentDescription = "Habit Nudge Logo",
+                        modifier = Modifier.size(92.dp)
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(22.dp))
 
-            Text(
-                text = "Habit Nudge",
-                style = MaterialTheme.typography.displayMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 30.sp
-                ),
-                color = MaterialTheme.colorScheme.onBackground
-            )
+                Text(
+                    text = "Habit Nudge",
+                    style = MaterialTheme.typography.displayMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 30.sp
+                    ),
+                    color = glass.textPrimary
+                )
 
-            Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-            Text(
-                text = "Small Habits. Stronger You.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = AccentOrange
-            )
+                Text(
+                    text = "Small Habits. Stronger You.",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                    color = AccentOrange
+                )
+            }
         }
     }
 }

@@ -1,11 +1,15 @@
 package com.habitnudge.app.ui.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.habitnudge.app.data.backup.BackupRestoreManager
 import com.habitnudge.app.data.preferences.UserPreferencesRepository
 import com.habitnudge.app.data.repository.HabitRepository
 import com.habitnudge.app.data.repository.JournalRepository
@@ -30,11 +34,16 @@ fun HabitNudgeNavHost(
     preferencesRepository: UserPreferencesRepository,
     alarmScheduler: AlarmScheduler,
     notificationHelper: NotificationHelper,
+    backupRestoreManager: BackupRestoreManager,
     startDestination: String = Screen.Splash.route
 ) {
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = startDestination,
+        enterTransition = { fadeIn(animationSpec = tween(220)) },
+        exitTransition = { fadeOut(animationSpec = tween(180)) },
+        popEnterTransition = { fadeIn(animationSpec = tween(220)) },
+        popExitTransition = { fadeOut(animationSpec = tween(180)) }
     ) {
         composable(Screen.Splash.route) {
             SplashScreen(
@@ -65,7 +74,9 @@ fun HabitNudgeNavHost(
                 habitRepository = habitRepository,
                 onNavigate = { route ->
                     if (route != Screen.Home.route) {
-                        navController.navigate(route)
+                        navController.navigate(route) {
+                            launchSingleTop = true
+                        }
                     }
                 }
             )
@@ -80,6 +91,7 @@ fun HabitNudgeNavHost(
                 habitId = habitId,
                 habitRepository = habitRepository,
                 reminderRepository = reminderRepository,
+                preferencesRepository = preferencesRepository,
                 alarmScheduler = alarmScheduler,
                 onBack = { navController.popBackStack() }
             )
@@ -93,7 +105,9 @@ fun HabitNudgeNavHost(
                 alarmScheduler = alarmScheduler,
                 onNavigate = { route ->
                     if (route != Screen.Reminders.route) {
-                        navController.navigate(route)
+                        navController.navigate(route) {
+                            launchSingleTop = true
+                        }
                     }
                 }
             )
@@ -104,7 +118,9 @@ fun HabitNudgeNavHost(
                 habitRepository = habitRepository,
                 onNavigate = { route ->
                     if (route != Screen.Stats.route) {
-                        navController.navigate(route)
+                        navController.navigate(route) {
+                            launchSingleTop = true
+                        }
                     }
                 }
             )
@@ -115,7 +131,9 @@ fun HabitNudgeNavHost(
                 journalRepository = journalRepository,
                 onNavigate = { route ->
                     if (route != Screen.Journal.route) {
-                        navController.navigate(route)
+                        navController.navigate(route) {
+                            launchSingleTop = true
+                        }
                     }
                 }
             )
@@ -127,9 +145,12 @@ fun HabitNudgeNavHost(
                 habitRepository = habitRepository,
                 alarmScheduler = alarmScheduler,
                 notificationHelper = notificationHelper,
+                backupRestoreManager = backupRestoreManager,
                 onNavigate = { route ->
                     if (route != Screen.Settings.route) {
-                        navController.navigate(route)
+                        navController.navigate(route) {
+                            launchSingleTop = true
+                        }
                     }
                 }
             )

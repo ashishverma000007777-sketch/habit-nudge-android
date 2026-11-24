@@ -1,10 +1,16 @@
 package com.habitnudge.app.ui.screens.journal
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,7 +26,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -27,10 +33,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,11 +52,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.habitnudge.app.data.repository.JournalRepository
 import com.habitnudge.app.ui.components.EmptyStateCard
-import com.habitnudge.app.ui.components.HabitNudgeBottomBar
-import com.habitnudge.app.ui.components.SectionHeader
+import com.habitnudge.app.ui.components.FrostedGlassCard
+import com.habitnudge.app.ui.components.GlassBackdrop
+import com.habitnudge.app.ui.components.GlassNavigationBar
+import com.habitnudge.app.ui.components.GlassTier
 import com.habitnudge.app.ui.navigation.Screen
 import com.habitnudge.app.ui.theme.AccentOrange
 import com.habitnudge.app.ui.theme.Dimens
+import com.habitnudge.app.ui.theme.LocalGlassPalette
 import com.habitnudge.app.ui.theme.SuccessGreen
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -65,11 +70,12 @@ fun NightJournalScreen(
     journalRepository: JournalRepository,
     onNavigate: (String) -> Unit
 ) {
+    val glass = LocalGlassPalette.current
     val allEntries by journalRepository.getAllEntries().collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
 
     val todayStr = remember { LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) }
-    var selectedTab by remember { mutableIntStateOf(0) } // 0 = Tonight's Entry, 1 = Past Reflections
+    var selectedTab by remember { mutableIntStateOf(0) }
 
     var wentWellText by remember { mutableStateOf("") }
     var wastedTimeText by remember { mutableStateOf("") }
@@ -85,229 +91,190 @@ fun NightJournalScreen(
         }
     }
 
-    Scaffold(
-        bottomBar = {
-            HabitNudgeBottomBar(
-                currentRoute = Screen.Journal.route,
-                onNavigate = onNavigate
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp)
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Column {
-                Text(
-                    text = "DISTRACTION-FREE REFLECTION",
-                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+    GlassBackdrop {
+        Scaffold(
+            bottomBar = {
+                GlassNavigationBar(
+                    currentRoute = Screen.Journal.route,
+                    onNavigate = onNavigate
                 )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "Night Journal",
-                    style = MaterialTheme.typography.displayMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 28.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
+            },
+            containerColor = Color.Transparent
+        ) { _ ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .padding(horizontal = Dimens.spaceScreenHorizontal)
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = Color.Transparent,
-                contentColor = AccentOrange,
-                indicator = { tabPositions ->
-                    TabRowDefaults.SecondaryIndicator(
-                        Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                        color = AccentOrange
+                Column {
+                    Text(
+                        text = "DISTRACTION-FREE REFLECTION",
+                        style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.2.sp),
+                        color = glass.textSecondary
+                    )
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Text(
+                        text = "Night Journal",
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 27.sp
+                        ),
+                        color = glass.textPrimary
                     )
                 }
-            ) {
-                Tab(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    text = {
-                        Text(
-                            "Today's Reflection",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = if (selectedTab == 0) AccentOrange else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                )
-                Tab(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    text = {
-                        Text(
-                            "Past Entries (${allEntries.size})",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = if (selectedTab == 1) AccentOrange else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                )
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            if (selectedTab == 0) {
-                // Today's entry writing view
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                // Glass Segmented Tabs
+                FrostedGlassCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    tier = GlassTier.Low,
+                    shape = RoundedCornerShape(Dimens.radiusPill),
+                    contentPadding = PaddingValues(4.dp)
                 ) {
-                    item {
-                        JournalPromptField(
-                            number = 1,
-                            prompt = "What went well today?",
-                            value = wentWellText,
-                            onValueChange = { wentWellText = it }
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        JournalTabPill(
+                            label = "Today's Reflection",
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 },
+                            modifier = Modifier.weight(1f)
+                        )
+                        JournalTabPill(
+                            label = "Past Entries (${allEntries.size})",
+                            selected = selectedTab == 1,
+                            onClick = { selectedTab = 1 },
+                            modifier = Modifier.weight(1f)
                         )
                     }
+                }
 
-                    item {
-                        JournalPromptField(
-                            number = 2,
-                            prompt = "What wasted my time or drained my energy?",
-                            value = wastedTimeText,
-                            onValueChange = { wastedTimeText = it }
-                        )
-                    }
+                Spacer(modifier = Modifier.height(16.dp))
 
-                    item {
-                        JournalPromptField(
-                            number = 3,
-                            prompt = "What's one thing I want to do better tomorrow?",
-                            value = improveTomorrowText,
-                            onValueChange = { improveTomorrowText = it }
-                        )
-                    }
-
-                    if (saveMessage != null) {
+                if (selectedTab == 0) {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                        contentPadding = PaddingValues(bottom = Dimens.bottomBarClearance)
+                    ) {
                         item {
-                            Row(
+                            JournalPromptField(
+                                number = 1,
+                                prompt = "What went well today?",
+                                value = wentWellText,
+                                onValueChange = { wentWellText = it }
+                            )
+                        }
+
+                        item {
+                            JournalPromptField(
+                                number = 2,
+                                prompt = "What wasted my time or drained my energy?",
+                                value = wastedTimeText,
+                                onValueChange = { wastedTimeText = it }
+                            )
+                        }
+
+                        item {
+                            JournalPromptField(
+                                number = 3,
+                                prompt = "What's one thing I want to do better tomorrow?",
+                                value = improveTomorrowText,
+                                onValueChange = { improveTomorrowText = it }
+                            )
+                        }
+
+                        item {
+                            AnimatedVisibility(
+                                visible = saveMessage != null,
+                                enter = fadeIn(),
+                                exit = fadeOut()
+                            ) {
+                                FrostedGlassCard(
+                                    tier = GlassTier.Medium,
+                                    accentBorderColor = SuccessGreen.copy(alpha = 0.5f),
+                                    contentPadding = PaddingValues(12.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Default.Check, contentDescription = null, tint = SuccessGreen)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = saveMessage ?: "",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = SuccessGreen
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        item {
+                            Button(
+                                onClick = {
+                                    scope.launch {
+                                        journalRepository.saveEntry(
+                                            date = todayStr,
+                                            wentWell = wentWellText,
+                                            wastedTimeOrEnergy = wastedTimeText,
+                                            improveTomorrow = improveTomorrowText
+                                        )
+                                        saveMessage = "Reflection saved successfully for today."
+                                    }
+                                },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(SuccessGreen.copy(alpha = 0.15f), RoundedCornerShape(Dimens.radiusSmall))
-                                    .padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                    .height(52.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = AccentOrange),
+                                shape = RoundedCornerShape(Dimens.radiusPill)
                             ) {
-                                Icon(Icons.Default.Check, contentDescription = null, tint = SuccessGreen)
-                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = saveMessage ?: "",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = SuccessGreen
+                                    "Save Tonight's Reflection",
+                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = Color.White
                                 )
                             }
                         }
                     }
-
-                    item {
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    journalRepository.saveEntry(
-                                        date = todayStr,
-                                        wentWell = wentWellText,
-                                        wastedTimeOrEnergy = wastedTimeText,
-                                        improveTomorrow = improveTomorrowText
-                                    )
-                                    saveMessage = "Reflection saved successfully for today."
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = AccentOrange),
-                            shape = RoundedCornerShape(Dimens.radiusPill)
-                        ) {
-                            Text(
-                                "Save Tonight's Reflection",
-                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.background
-                            )
-                        }
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(20.dp))
-                    }
-                }
-            } else {
-                // Past entries list
-                if (allEntries.isEmpty()) {
-                    EmptyStateCard(
-                        title = "No Past Reflections",
-                        description = "Your saved night journals will appear here for review.",
-                        icon = Icons.Default.Book
-                    )
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
-                    ) {
-                        items(allEntries, key = { it.id }) { entry ->
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(Dimens.radiusMedium))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                                    .border(Dimens.strokeThin, MaterialTheme.colorScheme.outline, RoundedCornerShape(Dimens.radiusMedium))
-                                    .padding(16.dp)
-                            ) {
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Text(
-                                        text = entry.date,
-                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                        color = AccentOrange
-                                    )
+                    if (allEntries.isEmpty()) {
+                        EmptyStateCard(
+                            title = "No Past Reflections",
+                            description = "Your saved night journals will appear here for quiet review.",
+                            icon = Icons.Default.Book
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(bottom = Dimens.bottomBarClearance)
+                        ) {
+                            items(allEntries, key = { it.id }) { entry ->
+                                FrostedGlassCard(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    tier = GlassTier.Medium,
+                                    contentPadding = PaddingValues(16.dp)
+                                ) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text(
+                                            text = entry.date,
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                fontFeatureSettings = "tnum"
+                                            ),
+                                            color = AccentOrange
+                                        )
 
-                                    if (entry.wentWell.isNotBlank()) {
-                                        Text(
-                                            text = "Went well:",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Text(
-                                            text = entry.wentWell,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onBackground
-                                        )
-                                    }
-
-                                    if (entry.wastedTimeOrEnergy.isNotBlank()) {
-                                        Text(
-                                            text = "Drained energy:",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Text(
-                                            text = entry.wastedTimeOrEnergy,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onBackground
-                                        )
-                                    }
-
-                                    if (entry.improveTomorrow.isNotBlank()) {
-                                        Text(
-                                            text = "Improve tomorrow:",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Text(
-                                            text = entry.improveTomorrow,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onBackground
-                                        )
+                                        if (entry.wentWell.isNotBlank()) {
+                                            EntryBlock(label = "Went well", text = entry.wentWell)
+                                        }
+                                        if (entry.wastedTimeOrEnergy.isNotBlank()) {
+                                            EntryBlock(label = "Drained energy", text = entry.wastedTimeOrEnergy)
+                                        }
+                                        if (entry.improveTomorrow.isNotBlank()) {
+                                            EntryBlock(label = "Improve tomorrow", text = entry.improveTomorrow)
+                                        }
                                     }
                                 }
                             }
@@ -320,50 +287,122 @@ fun NightJournalScreen(
 }
 
 @Composable
+private fun JournalTabPill(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val glass = LocalGlassPalette.current
+    val bg by animateColorAsState(
+        targetValue = if (selected) AccentOrange.copy(alpha = 0.20f) else Color.Transparent,
+        label = "journalTabBg"
+    )
+    val border by animateColorAsState(
+        targetValue = if (selected) AccentOrange.copy(alpha = 0.42f) else Color.Transparent,
+        label = "journalTabBorder"
+    )
+
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(Dimens.radiusPill))
+            .background(bg)
+            .border(Dimens.strokeThin, border, RoundedCornerShape(Dimens.radiusPill))
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge.copy(
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
+            ),
+            color = if (selected) AccentOrange else glass.textSecondary
+        )
+    }
+}
+
+@Composable
+private fun EntryBlock(label: String, text: String) {
+    val glass = LocalGlassPalette.current
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, letterSpacing = 0.6.sp),
+            color = glass.textTertiary
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = glass.textPrimary
+        )
+    }
+}
+
+@Composable
 private fun JournalPromptField(
     number: Int,
     prompt: String,
     value: String,
     onValueChange: (String) -> Unit
 ) {
-    Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(20.dp)
-                    .background(AccentOrange.copy(alpha = 0.2f), RoundedCornerShape(4.dp)),
-                contentAlignment = Alignment.Center
-            ) {
+    val glass = LocalGlassPalette.current
+
+    FrostedGlassCard(
+        modifier = Modifier.fillMaxWidth(),
+        tier = GlassTier.Medium,
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(22.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(AccentOrange.copy(alpha = 0.18f))
+                        .border(Dimens.strokeThin, AccentOrange.copy(alpha = 0.35f), RoundedCornerShape(6.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "$number",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = AccentOrange
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = "$number",
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = AccentOrange
+                    text = prompt,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = glass.textPrimary
                 )
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = prompt,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onBackground
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(96.dp),
+                placeholder = {
+                    Text(
+                        "Write your thoughts here...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = glass.textTertiary
+                    )
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = glass.surfaceLow,
+                    unfocusedContainerColor = glass.surfaceLow,
+                    focusedBorderColor = AccentOrange.copy(alpha = 0.7f),
+                    unfocusedBorderColor = glass.borderSubtle,
+                    focusedTextColor = glass.textPrimary,
+                    unfocusedTextColor = glass.textPrimary,
+                    cursorColor = AccentOrange
+                ),
+                shape = RoundedCornerShape(Dimens.radiusSmall)
             )
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp),
-            placeholder = { Text("Write your thoughts here...", style = MaterialTheme.typography.bodyMedium) },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                focusedBorderColor = AccentOrange,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline
-            ),
-            shape = RoundedCornerShape(Dimens.radiusMedium)
-        )
     }
 }

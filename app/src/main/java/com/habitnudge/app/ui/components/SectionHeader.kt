@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.habitnudge.app.ui.theme.AccentOrange
+import com.habitnudge.app.ui.theme.LocalGlassPalette
 
 @Composable
 fun SectionHeader(
@@ -24,29 +25,29 @@ fun SectionHeader(
     actionText: String? = null,
     onActionClick: (() -> Unit)? = null
 ) {
+    val glass = LocalGlassPalette.current
+
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 18.sp
                 ),
-                color = MaterialTheme.colorScheme.onBackground
+                color = glass.textPrimary
             )
             if (subtitle != null) {
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = glass.textSecondary
                 )
             }
         }
