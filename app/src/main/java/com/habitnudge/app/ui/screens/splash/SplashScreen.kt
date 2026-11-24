@@ -66,9 +66,9 @@ fun SplashScreen(
                 .alpha(alpha.value)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                painter = painterResource(id = R.drawable.ic_habit_nudge_logo),
                 contentDescription = "Habit Nudge Logo",
-                modifier = Modifier.size(110.dp)
+                modifier = Modifier.size(124.dp)
             )
 
             Spacer(modifier = Modifier.height(18.dp))

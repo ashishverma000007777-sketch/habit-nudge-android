@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Habit Nudge — Brand Identity & Launcher Icon Showcase</title>
+  <style>
+    :root {
+      --bg: #101114;
+      --surface-1: #191B20;
+      --surface-2: #22252B;
+      --surface-3: #2D313A;
+      --accent-orange: #FF8A3D;
+      --accent-amber: #FFC078;
+      --accent-green: #35C98A;
+      --accent-warning: #F5B942;
+      --text-primary: #F5F5F5;
+      --text-secondary: #A3A7B0;
+      --text-muted: #6B7280;
+      --font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font-family);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .brand-tag {
+      display: inline-block;
+      background: rgba(255, 138, 61, 0.15);
+      color: var(--accent-orange);
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255, 138, 61, 0.3);
+    }
+
+    h1 {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+    }
+
+    h1 span {
+      color: var(--accent-orange);
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 18px;
+      font-weight: 400;
+    }
+
+    .section {
+      background: var(--surface-1);
+      border: 1px solid var(--surface-2);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title::before {
+      content: "";
+      display: inline-block;
+      width: 4px;
+      height: 20px;
+      background: var(--accent-orange);
+      border-radius: 2px;
+    }
+
+    .section-desc {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    /* Master Logo Banner */
+    .logo-hero {
+      background: #0C0D0F;
+      border: 1px solid var(--surface-2);
+      border-radius: 16px;
+      padding: 36px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .logo-hero svg {
+      max-width: 100%;
+      height: auto;
+      filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.6));
+    }
+
+    /* Adaptive Icon Grid */
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+    }
+
+    .icon-card {
+      background: var(--surface-2);
+      border: 1px solid var(--surface-3);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .icon-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-orange);
+    }
+
+    .icon-preview-box {
+      width: 120px;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    /* Shapes */
+    .shape-squircle {
+      width: 108px;
+      height: 108px;
+      border-radius: 26px;
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+    }
+
+    .shape-circle {
+      width: 108px;
+      height: 108px;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+    }
+
+    .shape-rounded-rect {
+      width: 108px;
+      height: 108px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+    }
+
+    .shape-monochrome {
+      width: 108px;
+      height: 108px;
+      border-radius: 26px;
+      background: #2D394A; /* Android 13 Dynamic Palette Simulation */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .shape-monochrome svg {
+      width: 72px;
+      height: 72px;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    }
+
+    .icon-label {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .icon-sublabel {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Color Swatches */
+    .color-swatches {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+    }
+
+    .swatch {
+      background: var(--surface-2);
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid var(--surface-3);
+    }
+
+    .swatch-color {
+      height: 52px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .swatch-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .swatch-hex {
+      font-size: 11px;
+      font-family: monospace;
+      color: var(--text-secondary);
+    }
+
+    /* Comparison Table */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .comparison-card {
+      background: var(--surface-2);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .comparison-card.old {
+      border: 1px dashed var(--surface-3);
+      opacity: 0.75;
+    }
+
+    .comparison-card.new {
+      border: 1px solid var(--accent-orange);
+      background: linear-gradient(180deg, rgba(255, 138, 61, 0.06) 0%, var(--surface-2) 100%);
+    }
+
+    .badge-pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    .badge-old {
+      background: #374151;
+      color: #9CA3AF;
+    }
+
+    .badge-new {
+      background: var(--accent-orange);
+      color: #000;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--surface-2);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand-tag">Brand Identity & Design System</div>
+      <h1>Habit <span>Nudge</span></h1>
+      <p class="subtitle">Small Habits. Stronger You.</p>
+    </header>
+
+    <!-- Master Logo -->
+    <div class="section">
+      <div class="section-title">Master Brand Mark & Wordmark</div>
+      <div class="section-desc">Original high-resolution combination mark designed for splash transitions, headers, and media.</div>
+      <div class="logo-hero">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 260" width="880" height="260">
+          <defs>
+            <linearGradient id="nudgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FF8A3D" />
+              <stop offset="60%" stop-color="#FFA25A" />
+              <stop offset="100%" stop-color="#FFC078" />
+            </linearGradient>
+            <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#1D2026" />
+              <stop offset="100%" stop-color="#141519" />
+            </linearGradient>
+          </defs>
+          <rect width="880" height="260" rx="28" fill="#101114" />
+          <rect x="1" y="1" width="878" height="258" rx="27" fill="none" stroke="#22252B" stroke-width="2" />
+          <g transform="translate(40, 30)">
+            <rect width="200" height="200" rx="46" fill="url(#cardGrad)" stroke="#2B303B" stroke-width="2" />
+            <circle cx="100" cy="100" r="62" fill="none" stroke="#22262F" stroke-width="8" stroke-linecap="round" />
+            <path d="M 38 100 A 62 62 0 1 1 143.84 143.84" fill="none" stroke="url(#nudgeGrad)" stroke-width="9" stroke-linecap="round" />
+            <circle cx="149" cy="60" r="4.5" fill="#FF8A3D" />
+            <circle cx="158" cy="82" r="5.5" fill="#FFC078" />
+            <circle cx="156" cy="107" r="6.5" fill="#35C98A" />
+            <path d="M 85 75 L 110 100 L 85 125" fill="none" stroke="#F5F5F5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="70" cy="100" r="6" fill="#FF8A3D" />
+          </g>
+          <g transform="translate(280, 115)">
+            <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif" font-size="58" font-weight="700" letter-spacing="-1">
+              <tspan fill="#F5F5F5">Habit</tspan>
+              <tspan fill="#FF8A3D" dx="14">Nudge</tspan>
+            </text>
+            <text x="4" y="44" font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="500" fill="#A3A7B0" letter-spacing="2.5">
+              SMALL HABITS. STRONGER YOU.
+            </text>
+            <g transform="translate(4, 76)">
+              <rect width="118" height="24" rx="6" fill="#1C1F26" />
+              <text x="12" y="16" font-family="sans-serif" font-size="11" font-weight="600" fill="#FF8A3D" letter-spacing="1">PREMIUM M3</text>
+              <rect x="128" width="132" height="24" rx="6" fill="#1C1F26" />
+              <text x="138" y="16" font-family="sans-serif" font-size="11" font-weight="600" fill="#35C98A" letter-spacing="1">100% OFFLINE</text>
+              <rect x="270" width="144" height="24" rx="6" fill="#1C1F26" />
+              <text x="280" y="16" font-family="sans-serif" font-size="11" font-weight="600" fill="#FFC078" letter-spacing="1">SMART REMINDERS</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Android Adaptive Icon Variants -->
+    <div class="section">
+      <div class="section-title">Android Adaptive Launcher Icon (API 26+)</div>
+      <div class="section-desc">Adaptive vector rendering respecting the 72dp safe zone across dynamic launcher shapes and Android 13+ Themed Icons.</div>
+      <div class="icon-grid">
+        <!-- Squircle (Samsung One UI / Google Pixel) -->
+        <div class="icon-card">
+          <div class="icon-preview-box">
+            <div class="shape-squircle">
+              <svg viewBox="0 0 512 512" width="108" height="108">
+                <rect width="512" height="512" fill="#101114" />
+                <circle cx="256" cy="256" r="148" fill="none" stroke="#222630" stroke-width="20" stroke-linecap="round" />
+                <path d="M 108 256 A 148 148 0 1 1 360.65 360.65" fill="none" stroke="#FF8A3D" stroke-width="24" stroke-linecap="round" />
+                <circle cx="373" cy="160" r="11" fill="#FF8A3D" />
+                <circle cx="395" cy="212" r="13.5" fill="#FFC078" />
+                <circle cx="390" cy="272" r="16" fill="#35C98A" />
+                <path d="M 220 195 L 282 256 L 220 317" fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="184" cy="256" r="15" fill="#FF8A3D" />
+              </svg>
+            </div>
+          </div>
+          <div class="icon-label">Squircle Mask</div>
+          <div class="icon-sublabel">Pixel / One UI</div>
+        </div>
+
+        <!-- Circle (Standard Android / Motorola) -->
+        <div class="icon-card">
+          <div class="icon-preview-box">
+            <div class="shape-circle">
+              <svg viewBox="0 0 512 512" width="108" height="108">
+                <rect width="512" height="512" fill="#101114" />
+                <circle cx="256" cy="256" r="148" fill="none" stroke="#222630" stroke-width="20" stroke-linecap="round" />
+                <path d="M 108 256 A 148 148 0 1 1 360.65 360.65" fill="none" stroke="#FF8A3D" stroke-width="24" stroke-linecap="round" />
+                <circle cx="373" cy="160" r="11" fill="#FF8A3D" />
+                <circle cx="395" cy="212" r="13.5" fill="#FFC078" />
+                <circle cx="390" cy="272" r="16" fill="#35C98A" />
+                <path d="M 220 195 L 282 256 L 220 317" fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="184" cy="256" r="15" fill="#FF8A3D" />
+              </svg>
+            </div>
+          </div>
+          <div class="icon-label">Circular Mask</div>
+          <div class="icon-sublabel">Stock Android / Moto</div>
+        </div>
+
+        <!-- Rounded Rect (Xiaomi HyperOS / Oppo ColorOS) -->
+        <div class="icon-card">
+          <div class="icon-preview-box">
+            <div class="shape-rounded-rect">
+              <svg viewBox="0 0 512 512" width="108" height="108">
+                <rect width="512" height="512" fill="#101114" />
+                <circle cx="256" cy="256" r="148" fill="none" stroke="#222630" stroke-width="20" stroke-linecap="round" />
+                <path d="M 108 256 A 148 148 0 1 1 360.65 360.65" fill="none" stroke="#FF8A3D" stroke-width="24" stroke-linecap="round" />
+                <circle cx="373" cy="160" r="11" fill="#FF8A3D" />
+                <circle cx="395" cy="212" r="13.5" fill="#FFC078" />
+                <circle cx="390" cy="272" r="16" fill="#35C98A" />
+                <path d="M 220 195 L 282 256 L 220 317" fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="184" cy="256" r="15" fill="#FF8A3D" />
+              </svg>
+            </div>
+          </div>
+          <div class="icon-label">Rounded Rect</div>
+          <div class="icon-sublabel">Xiaomi / ColorOS</div>
+        </div>
+
+        <!-- Android 13+ Themed / Monochrome -->
+        <div class="icon-card">
+          <div class="icon-preview-box">
+            <div class="shape-monochrome">
+              <svg viewBox="0 0 108 108" width="72" height="72">
+                <path stroke="#B8C8DB" stroke-width="4.2" stroke-linecap="round" fill="none" d="M30,54 A24,24 0 1,1 70.97,70.97" />
+                <circle cx="73" cy="39" r="1.8" fill="#B8C8DB" />
+                <circle cx="76.5" cy="47" r="2.2" fill="#B8C8DB" />
+                <circle cx="76" cy="57" r="2.6" fill="#B8C8DB" />
+                <path stroke="#FFFFFF" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" fill="none" d="M48,44 L58,54 L48,64" />
+                <circle cx="42" cy="54" r="2.5" fill="#B8C8DB" />
+              </svg>
+            </div>
+          </div>
+          <div class="icon-label">Material You Themed</div>
+          <div class="icon-sublabel">Android 13+ (Dynamic Tint)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Color System -->
+    <div class="section">
+      <div class="section-title">Color Palette System</div>
+      <div class="section-desc">Dark-first luxury color hierarchy designed for focus, motivation, and contrast.</div>
+      <div class="color-swatches">
+        <div class="swatch">
+          <div class="swatch-color" style="background: #101114;"></div>
+          <div class="swatch-name">Background</div>
+          <div class="swatch-hex">#101114</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background: #191B20;"></div>
+          <div class="swatch-name">Secondary Surface</div>
+          <div class="swatch-hex">#191B20</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background: #22252B;"></div>
+          <div class="swatch-name">Elevated Card</div>
+          <div class="swatch-hex">#22252B</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background: #FF8A3D;"></div>
+          <div class="swatch-name">Nudge Orange</div>
+          <div class="swatch-hex">#FF8A3D</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background: #FFC078;"></div>
+          <div class="swatch-name">Sunrise Amber</div>
+          <div class="swatch-hex">#FFC078</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background: #35C98A;"></div>
+          <div class="swatch-name">Momentum Green</div>
+          <div class="swatch-hex">#35C98A</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Before & After Comparison -->
+    <div class="section">
+      <div class="section-title">Evolution: Placeholder vs. Custom Brand Mark</div>
+      <div class="comparison-grid">
+        <div class="comparison-card old">
+          <span class="badge-pill badge-old">Previous State</span>
+          <h3 style="margin-bottom: 8px;">Basic Text / Vector Placeholder</h3>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+            A simple raw vector path hooked directly into <code>android:icon</code> with no adaptive layers, no monochrome Material You support, no density mipmaps, and no master brand assets.
+          </p>
+          <ul style="font-size: 12px; color: var(--text-muted); padding-left: 18px;">
+            <li>No adaptive icon layers (missing background/foreground split)</li>
+            <li>No raster mipmaps (missing mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi)</li>
+            <li>No standalone brand mark or wordmark SVG</li>
+          </ul>
+        </div>
+        <div class="comparison-card new">
+          <span class="badge-pill badge-new">New Brand Identity</span>
+          <h3 style="margin-bottom: 8px;">Custom Kinetic Nudge Brand System</h3>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+            Original symbol featuring the 270° ascending momentum ring, compounding habit pips, and forward nudge chevron, paired with the geometric sans wordmark.
+          </p>
+          <ul style="font-size: 12px; color: var(--text-secondary); padding-left: 18px;">
+            <li>Full Adaptive Icon specification with 72dp safe zone</li>
+            <li>Android 13+ Material You monochrome themed icon</li>
+            <li>Density mipmaps generated up to 512px and 1024px</li>
+            <li>Embedded in Splash Screen and notification status bar</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Habit Nudge — Designed for Android 14 (API 34) &bull; Production Ready
+    </footer>
+  </div>
+</body>
+</html>

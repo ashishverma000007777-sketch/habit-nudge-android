@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <!-- Elevated Dark Card Badge -->
+    <path
+        android:fillColor="#191B20"
+        android:pathData="M20,6 C11.16,6 4,13.16 4,22 L4,98 C4,106.84 11.16,114 20,114 L96,114 C104.84,114 112,106.84 112,98 L112,22 C112,13.16 104.84,6 96,6 Z" />
+    <path
+        android:strokeColor="#2E333D"
+        android:strokeWidth="1.5"
+        android:fillColor="#00000000"
+        android:pathData="M20,6 C11.16,6 4,13.16 4,22 L4,98 C4,106.84 11.16,114 20,114 L96,114 C104.84,114 112,106.84 112,98 L112,22 C112,13.16 104.84,6 96,6 Z" />
+
+    <!-- Background Arc Track -->
+    <path
+        android:strokeColor="#282D37"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M60,26 A34,34 0 1,0 94,60" />
+
+    <!-- Glowing Momentum Arc -->
+    <path
+        android:strokeWidth="5.5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M26,60 A34,34 0 1,1 84.04,84.04">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="26"
+                android:startY="60"
+                android:endX="90"
+                android:endY="48"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FF8A3D" />
+                <item android:offset="0.6" android:color="#FFA25A" />
+                <item android:offset="1.0" android:color="#FFC078" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Habit Pips -->
+    <path
+        android:fillColor="#FF8A3D"
+        android:pathData="M87,38m-2.5,0a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0" />
+    <path
+        android:fillColor="#FFC078"
+        android:pathData="M92,50m-3,0a3,3 0 1,0 6,0a3,3 0 1,0 -6,0" />
+    <path
+        android:fillColor="#35C98A"
+        android:pathData="M91,64m-3.5,0a3.5,3.5 0 1,0 7,0a3.5,3.5 0 1,0 -7,0" />
+
+    <!-- Forward Kinetic Chevron -->
+    <path
+        android:strokeColor="#F5F5F5"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M52,46 L66,60 L52,74" />
+
+    <!-- Pulse Anchor Dot -->
+    <path
+        android:fillColor="#FF8A3D"
+        android:pathData="M43,60m-3.5,0a3.5,3.5 0 1,0 7,0a3.5,3.5 0 1,0 -7,0" />
+</vector>
