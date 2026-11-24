@@ -37,7 +37,6 @@ class HabitReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val habitId = intent.getStringExtra(NotificationHelper.EXTRA_HABIT_ID) ?: return
         val reminderId = intent.getLongExtra(NotificationHelper.EXTRA_REMINDER_ID, -1L)
-        if (reminderId == -1L) return
 
         val pendingResult = goAsync()
 
@@ -52,18 +51,20 @@ class HabitReminderReceiver : BroadcastReceiver() {
                 val todayStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
                 val checkIn = checkInDao.getCheckIn(habitId, todayStr)
                 if (checkIn != null && checkIn.completed) {
-                    // Stop sending reminders for completed habits
+                    // Habit already completed today; skip notification
                     return@launch
                 }
 
                 // Show the notification
                 notificationHelper.showHabitNotification(habit, reminderId)
 
-                // Clear snooze and schedule next cycle
-                reminderDao.updateSnooze(reminderId, null)
-                val reminder = reminderDao.getReminderById(reminderId)
-                if (reminder != null && reminder.isEnabled) {
-                    alarmScheduler.scheduleReminder(reminder)
+                // Clear snooze and schedule next recurrence
+                if (reminderId != -1L) {
+                    reminderDao.updateSnooze(reminderId, null)
+                    val reminder = reminderDao.getReminderById(reminderId)
+                    if (reminder != null && reminder.isEnabled) {
+                        alarmScheduler.scheduleReminder(reminder)
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

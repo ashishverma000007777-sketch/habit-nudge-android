@@ -10,8 +10,6 @@ import com.habitnudge.app.data.local.dao.ReminderDao
 import com.habitnudge.app.data.local.entity.ReminderEntity
 import com.habitnudge.app.reminder.receiver.HabitReminderReceiver
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.time.DayOfWeek
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
@@ -71,7 +69,49 @@ class AlarmScheduler @Inject constructor(
                 )
             }
         } catch (e: SecurityException) {
-            // Fallback for permission restrictions
+            alarmManager.set(
+                AlarmManager.RTC_WAKEUP,
+                triggerMillis,
+                pendingIntent
+            )
+        }
+    }
+
+    fun scheduleOneOffReminder(habitId: String, triggerMillis: Long) {
+        val intent = Intent(context, HabitReminderReceiver::class.java).apply {
+            putExtra(NotificationHelper.EXTRA_REMINDER_ID, -1L)
+            putExtra(NotificationHelper.EXTRA_HABIT_ID, habitId)
+        }
+
+        val requestCode = ((habitId.hashCode() and 0x7FFFFFFF) % 100000) + 800000
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val canScheduleExact = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            alarmManager.canScheduleExactAlarms()
+        } else {
+            true
+        }
+
+        try {
+            if (canScheduleExact) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerMillis,
+                    pendingIntent
+                )
+            } else {
+                alarmManager.setAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerMillis,
+                    pendingIntent
+                )
+            }
+        } catch (e: SecurityException) {
             alarmManager.set(
                 AlarmManager.RTC_WAKEUP,
                 triggerMillis,
@@ -117,7 +157,6 @@ class AlarmScheduler @Inject constructor(
 
         val validDays = if (repeatDays.isEmpty()) (1..7).toSet() else repeatDays
 
-        // Check today and up to 14 days in the future
         for (i in 0..14) {
             val targetDate = now.toLocalDate().plusDays(i.toLong())
             val targetDayOfWeek = targetDate.dayOfWeek.value // 1 = Monday .. 7 = Sunday
@@ -129,7 +168,6 @@ class AlarmScheduler @Inject constructor(
             }
         }
 
-        // Fallback: 24h from now
         return now.plusDays(1).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
     }
 }

@@ -32,6 +32,8 @@ data class UserSettings(
     val quietHoursEndMinute: Int = 0,
     val reminderSoundEnabled: Boolean = true,
     val reminderVibrationEnabled: Boolean = true,
+    val soundToneUri: String = "",
+    val soundToneTitle: String = "Default notification tone",
     val weekStartMonday: Boolean = true,
     val bedtimeHour: Int = 23,
     val bedtimeMinute: Int = 0,
@@ -54,6 +56,8 @@ class UserPreferencesRepository @Inject constructor(
         val QUIET_HOURS_END_MINUTE = intPreferencesKey("quiet_hours_end_minute")
         val SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
         val VIBRATION_ENABLED = booleanPreferencesKey("vibration_enabled")
+        val SOUND_TONE_URI = stringPreferencesKey("sound_tone_uri")
+        val SOUND_TONE_TITLE = stringPreferencesKey("sound_tone_title")
         val WEEK_START_MONDAY = booleanPreferencesKey("week_start_monday")
         val BEDTIME_HOUR = intPreferencesKey("bedtime_hour")
         val BEDTIME_MINUTE = intPreferencesKey("bedtime_minute")
@@ -73,6 +77,8 @@ class UserPreferencesRepository @Inject constructor(
             quietHoursEndMinute = prefs[PreferencesKeys.QUIET_HOURS_END_MINUTE] ?: 0,
             reminderSoundEnabled = prefs[PreferencesKeys.SOUND_ENABLED] ?: true,
             reminderVibrationEnabled = prefs[PreferencesKeys.VIBRATION_ENABLED] ?: true,
+            soundToneUri = prefs[PreferencesKeys.SOUND_TONE_URI] ?: "",
+            soundToneTitle = prefs[PreferencesKeys.SOUND_TONE_TITLE] ?: "Default notification tone",
             weekStartMonday = prefs[PreferencesKeys.WEEK_START_MONDAY] ?: true,
             bedtimeHour = prefs[PreferencesKeys.BEDTIME_HOUR] ?: 23,
             bedtimeMinute = prefs[PreferencesKeys.BEDTIME_MINUTE] ?: 0,
@@ -104,6 +110,13 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setVibrationEnabled(enabled: Boolean) {
         dataStore.edit { it[PreferencesKeys.VIBRATION_ENABLED] = enabled }
+    }
+
+    suspend fun setSoundTone(uri: String, title: String) {
+        dataStore.edit {
+            it[PreferencesKeys.SOUND_TONE_URI] = uri
+            it[PreferencesKeys.SOUND_TONE_TITLE] = title
+        }
     }
 
     suspend fun setWeekStartMonday(monday: Boolean) {

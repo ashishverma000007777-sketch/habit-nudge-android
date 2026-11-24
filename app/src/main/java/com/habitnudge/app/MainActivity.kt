@@ -46,6 +46,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var alarmScheduler: AlarmScheduler
 
+    @Inject
+    lateinit var notificationHelper: NotificationHelper
+
     private val requestNotificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             // Permission result handled gracefully
@@ -81,6 +84,7 @@ class MainActivity : ComponentActivity() {
                         journalRepository = journalRepository,
                         preferencesRepository = preferencesRepository,
                         alarmScheduler = alarmScheduler,
+                        notificationHelper = notificationHelper,
                         startDestination = if (habitIdExtra != null) Screen.HabitDetail.createRoute(habitIdExtra) else Screen.Splash.route
                     )
                 }

@@ -47,14 +47,17 @@ class HabitNotificationActionReceiver : BroadcastReceiver() {
                         habitRepository.markHabitCompletedForToday(habitId)
                     }
                     NotificationHelper.ACTION_SNOOZE -> {
+                        val snoozeMinutes = intent.getIntExtra(NotificationHelper.EXTRA_SNOOZE_MINUTES, 10)
+                        val snoozeMillis = System.currentTimeMillis() + (snoozeMinutes * 60 * 1000L)
                         if (reminderId != -1L) {
-                            val snoozeMinutes = intent.getIntExtra("extra_snooze_minutes", 10)
-                            val snoozeMillis = System.currentTimeMillis() + (snoozeMinutes * 60 * 1000L)
                             reminderDao.updateSnooze(reminderId, snoozeMillis)
                             val reminder = reminderDao.getReminderById(reminderId)
                             if (reminder != null) {
                                 alarmScheduler.scheduleReminder(reminder)
                             }
+                        } else {
+                            // Support one-off snooze for notifications without stored reminder record (e.g. test)
+                            alarmScheduler.scheduleOneOffReminder(habitId, snoozeMillis)
                         }
                     }
                 }

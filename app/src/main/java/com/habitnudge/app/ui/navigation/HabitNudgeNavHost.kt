@@ -11,6 +11,7 @@ import com.habitnudge.app.data.repository.HabitRepository
 import com.habitnudge.app.data.repository.JournalRepository
 import com.habitnudge.app.data.repository.ReminderRepository
 import com.habitnudge.app.reminder.AlarmScheduler
+import com.habitnudge.app.reminder.NotificationHelper
 import com.habitnudge.app.ui.screens.detail.HabitDetailScreen
 import com.habitnudge.app.ui.screens.home.HomeScreen
 import com.habitnudge.app.ui.screens.journal.NightJournalScreen
@@ -28,6 +29,7 @@ fun HabitNudgeNavHost(
     journalRepository: JournalRepository,
     preferencesRepository: UserPreferencesRepository,
     alarmScheduler: AlarmScheduler,
+    notificationHelper: NotificationHelper,
     startDestination: String = Screen.Splash.route
 ) {
     NavHost(
@@ -124,6 +126,7 @@ fun HabitNudgeNavHost(
                 preferencesRepository = preferencesRepository,
                 habitRepository = habitRepository,
                 alarmScheduler = alarmScheduler,
+                notificationHelper = notificationHelper,
                 onNavigate = { route ->
                     if (route != Screen.Settings.route) {
                         navController.navigate(route)
