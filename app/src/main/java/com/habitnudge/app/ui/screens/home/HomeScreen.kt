@@ -251,6 +251,7 @@ private fun HomeDailyProgressCard(
             .clip(RoundedCornerShape(Dimens.radiusMedium))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(Dimens.strokeThin, MaterialTheme.colorScheme.outline, RoundedCornerShape(Dimens.radiusMedium))
+            .clickable(onClick = onViewReminders)
             .padding(20.dp)
     ) {
         Row(

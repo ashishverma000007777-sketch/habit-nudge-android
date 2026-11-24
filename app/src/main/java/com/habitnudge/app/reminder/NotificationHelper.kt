@@ -65,10 +65,10 @@ class NotificationHelper @Inject constructor(
             val start = LocalTime.of(settings.quietHoursStartHour, settings.quietHoursStartMinute)
             val end = LocalTime.of(settings.quietHoursEndHour, settings.quietHoursEndMinute)
             val inQuietHours = if (start.isBefore(end)) {
-                now.isAfter(start) && now.isBefore(end)
+                (!now.isBefore(start)) && now.isBefore(end)
             } else {
                 // e.g. 22:00 to 07:00 (spans midnight)
-                now.isAfter(start) || now.isBefore(end)
+                (!now.isBefore(start)) || now.isBefore(end)
             }
             if (inQuietHours) {
                 // Suppressed during quiet hours

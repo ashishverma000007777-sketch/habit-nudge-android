@@ -75,7 +75,6 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
 
     var showResetDialog by remember { mutableStateOf(false) }
-    var selectedResetHabitId by remember { mutableStateOf<String?>(null) }
     var showQuietHoursPicker by remember { mutableStateOf(false) }
 
     val userSettings = settings ?: return

@@ -48,7 +48,8 @@ class HabitNotificationActionReceiver : BroadcastReceiver() {
                     }
                     NotificationHelper.ACTION_SNOOZE -> {
                         if (reminderId != -1L) {
-                            val snoozeMillis = System.currentTimeMillis() + (10 * 60 * 1000L) // 10 minutes
+                            val snoozeMinutes = intent.getIntExtra("extra_snooze_minutes", 10)
+                            val snoozeMillis = System.currentTimeMillis() + (snoozeMinutes * 60 * 1000L)
                             reminderDao.updateSnooze(reminderId, snoozeMillis)
                             val reminder = reminderDao.getReminderById(reminderId)
                             if (reminder != null) {

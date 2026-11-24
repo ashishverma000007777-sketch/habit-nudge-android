@@ -95,7 +95,6 @@ class AlarmScheduler @Inject constructor(
     }
 
     suspend fun rescheduleAllAlarms() {
-        val activeHabits = habitDao.getActiveHabits()
         val enabledReminders = reminderDao.getEnabledRemindersList()
 
         for (reminder in enabledReminders) {
@@ -118,8 +117,8 @@ class AlarmScheduler @Inject constructor(
 
         val validDays = if (repeatDays.isEmpty()) (1..7).toSet() else repeatDays
 
-        // Check today and up to 8 days in the future
-        for (i in 0..7) {
+        // Check today and up to 14 days in the future
+        for (i in 0..14) {
             val targetDate = now.toLocalDate().plusDays(i.toLong())
             val targetDayOfWeek = targetDate.dayOfWeek.value // 1 = Monday .. 7 = Sunday
             if (validDays.contains(targetDayOfWeek)) {

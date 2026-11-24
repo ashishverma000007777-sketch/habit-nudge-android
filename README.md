@@ -119,7 +119,7 @@ com.habitnudge.app
 
 ## 🧪 Quality Assurance & Unit Tests
 
-The test suite thoroughly verifies core business calculations, streak rules, and schedule parsing:
+The test suite thoroughly verifies core business calculations, streak rules, weekly scheduling, quiet hours boundaries, and challenge specifications:
 
 - **`CalculateStreakUseCaseTest`**:
   - `empty check-ins returns zero streak and zero progress`: PASS
@@ -128,6 +128,11 @@ The test suite thoroughly verifies core business calculations, streak rules, and
   - `checking in today increases streak from 5 to 6`: PASS
   - `broken streak resets current streak to 0 if yesterday was missed and today is not checked`: PASS
   - `challenge completion is detected when completed days reach duration`: PASS
+- **`HabitChallengesAndSchedulingTest`**:
+  - `verify all seven habit challenges match required specifications`: PASS
+  - `verify weekly habit scheduling finds next Saturday accurately`: PASS
+  - `verify quiet hours boundary logic`: PASS
+  - `streak calculation with multiple gaps retains overall best streak`: PASS
 - **`AlarmSchedulerLogicTest`**:
   - `snooze duration calculation adds exact minutes`: PASS
   - `repeat days parsing correctly handles CSV`: PASS
@@ -136,19 +141,24 @@ The test suite thoroughly verifies core business calculations, streak rules, and
 ```bash
 # Run unit tests
 ./gradlew testDebugUnitTest
-# Result: BUILD SUCCESSFUL — 9/9 tests passed (0 failures, 0 skipped)
+# Result: BUILD SUCCESSFUL — 13/13 tests passed (0 failures, 0 skipped)
 ```
 
 ---
 
 ## 📦 Building & Installing the APK
 
-### Build APK
+### Build Debug APK
 ```bash
 ./gradlew assembleDebug
+# Generated at: app/build/outputs/apk/debug/app-debug.apk (16.6 MB)
 ```
-The compiled, signed debug APK is generated at:
-`app/build/outputs/apk/debug/app-debug.apk`
+
+### Build Production-Ready Release APK
+```bash
+./gradlew assembleRelease
+# Generated at: app/build/outputs/apk/release/app-release.apk (11.4 MB)
+```
 
 ### Install via ADB
 ```bash

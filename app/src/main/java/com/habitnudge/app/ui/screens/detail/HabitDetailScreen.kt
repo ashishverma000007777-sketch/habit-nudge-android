@@ -200,6 +200,14 @@ fun HabitDetailScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.85f)
                         )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Text(
+                            text = "Started: $startDateFormatted • Target: ${habit.durationDays} Days",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = accentColor
+                        )
                     }
                 }
             }
@@ -334,6 +342,52 @@ fun HabitDetailScreen(
                                 text = task,
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 14-day Check-in History Strip
+            item {
+                SectionHeader(
+                    title = "Recent Check-in History",
+                    subtitle = "Past 14 days activity"
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                val today = java.time.LocalDate.now()
+                val completedDates = checkIns.filter { it.completed }.map { it.date }.toSet()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(Dimens.radiusMedium))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .border(Dimens.strokeThin, MaterialTheme.colorScheme.outline, RoundedCornerShape(Dimens.radiusMedium))
+                        .padding(14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    (13 downTo 0).forEach { daysAgo ->
+                        val date = today.minusDays(daysAgo.toLong())
+                        val dateStr = date.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+                        val isDone = completedDates.contains(dateStr)
+                        val isToday = daysAgo == 0
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = date.dayOfWeek.name.take(1),
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                color = if (isToday) AccentOrange else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isDone) SuccessGreen else if (isToday) AccentOrange.copy(alpha = 0.25f) else MaterialTheme.colorScheme.outlineVariant)
+                                    .then(if (isToday) Modifier.border(1.dp, AccentOrange, CircleShape) else Modifier)
                             )
                         }
                     }
