@@ -1,0 +1,11 @@
+<resources>
+    <color name="bg_dark">#101114</color>
+    <color name="surface_dark">#191B20</color>
+    <color name="card_dark">#22252B</color>
+    <color name="accent_orange">#FF8A3D</color>
+    <color name="accent_secondary">#FFC078</color>
+    <color name="text_primary">#F5F5F5</color>
+    <color name="text_secondary">#A3A7B0</color>
+    <color name="success">#35C98A</color>
+    <color name="warning">#F5B942</color>
+</resources>
