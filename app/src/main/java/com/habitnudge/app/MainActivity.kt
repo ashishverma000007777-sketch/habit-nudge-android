@@ -22,6 +22,7 @@ import com.habitnudge.app.data.repository.JournalRepository
 import com.habitnudge.app.data.repository.ReminderRepository
 import com.habitnudge.app.reminder.AlarmScheduler
 import com.habitnudge.app.reminder.NotificationHelper
+import com.habitnudge.app.reminder.alarm.HabitAlarmSoundService
 import com.habitnudge.app.ui.navigation.HabitNudgeNavHost
 import com.habitnudge.app.ui.navigation.Screen
 import com.habitnudge.app.ui.theme.HabitNudgeTheme
@@ -50,12 +51,15 @@ class MainActivity : ComponentActivity() {
     lateinit var notificationHelper: NotificationHelper
 
     private val requestNotificationPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
             // Permission result handled gracefully
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Stop any ringing repeating alarm when user opens the app
+        HabitAlarmSoundService.stopAlarm(this)
 
         // Request notification permission on Android 13+ (API 33+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -95,5 +99,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        // Stop any ringing repeating alarm when reopened via notification tap
+        HabitAlarmSoundService.stopAlarm(this)
     }
 }

@@ -1,12 +1,15 @@
 package com.habitnudge.app.reminder.receiver
 
+import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import com.habitnudge.app.data.local.dao.HabitDao
 import com.habitnudge.app.data.local.dao.ReminderDao
 import com.habitnudge.app.data.repository.HabitRepository
 import com.habitnudge.app.reminder.AlarmScheduler
 import com.habitnudge.app.reminder.NotificationHelper
+import com.habitnudge.app.reminder.alarm.HabitAlarmSoundService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +21,9 @@ class HabitNotificationActionReceiver : BroadcastReceiver() {
 
     @Inject
     lateinit var habitRepository: HabitRepository
+
+    @Inject
+    lateinit var habitDao: HabitDao
 
     @Inject
     lateinit var reminderDao: ReminderDao
@@ -38,15 +44,38 @@ class HabitNotificationActionReceiver : BroadcastReceiver() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                if (notificationId != -1) {
-                    notificationHelper.cancelNotification(notificationId)
-                }
+                // Immediately stop repeating alarm playback on any action
+                HabitAlarmSoundService.stopAlarm(context)
 
                 when (action) {
+                    NotificationHelper.ACTION_STOP_ALARM -> {
+                        // User pressed "Stop Alarm" or swiped away:
+                        // Keep notification visible in tray in stopped mode so reminder is not lost
+                        val habit = habitDao.getHabitById(habitId)
+                        if (habit != null && notificationId != -1) {
+                            val stoppedNotification = notificationHelper.buildAlarmNotification(
+                                habit = habit,
+                                reminderId = reminderId,
+                                notificationId = notificationId,
+                                isRinging = false
+                            )
+                            val notificationManager =
+                                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                            notificationManager.notify(notificationId, stoppedNotification)
+                        }
+                    }
+
                     NotificationHelper.ACTION_MARK_DONE -> {
+                        if (notificationId != -1) {
+                            notificationHelper.cancelNotification(notificationId)
+                        }
                         habitRepository.markHabitCompletedForToday(habitId)
                     }
+
                     NotificationHelper.ACTION_SNOOZE -> {
+                        if (notificationId != -1) {
+                            notificationHelper.cancelNotification(notificationId)
+                        }
                         val snoozeMinutes = intent.getIntExtra(NotificationHelper.EXTRA_SNOOZE_MINUTES, 10)
                         val snoozeMillis = System.currentTimeMillis() + (snoozeMinutes * 60 * 1000L)
                         if (reminderId != -1L) {

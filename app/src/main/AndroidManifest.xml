@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
     <application
         android:name=".HabitNudgeApp"
@@ -30,12 +32,18 @@
             </intent-filter>
         </activity>
 
+        <!-- Foreground Service for Repeating Alarm Sound Playback -->
+        <service
+            android:name=".reminder.alarm.HabitAlarmSoundService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
         <!-- Broadcast Receiver for Scheduled Alarms -->
         <receiver
             android:name=".reminder.receiver.HabitReminderReceiver"
             android:exported="false" />
 
-        <!-- Broadcast Receiver for Notification Quick Actions (Mark Done, Snooze) -->
+        <!-- Broadcast Receiver for Notification Quick Actions (Mark Done, Snooze, Stop Alarm) -->
         <receiver
             android:name=".reminder.receiver.HabitNotificationActionReceiver"
             android:exported="false" />

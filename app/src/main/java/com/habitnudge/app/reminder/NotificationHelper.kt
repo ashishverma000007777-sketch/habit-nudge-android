@@ -1,5 +1,6 @@
 package com.habitnudge.app.reminder
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -41,6 +42,7 @@ class NotificationHelper @Inject constructor(
 
         const val ACTION_MARK_DONE = "com.habitnudge.app.ACTION_MARK_DONE"
         const val ACTION_SNOOZE = "com.habitnudge.app.ACTION_SNOOZE"
+        const val ACTION_STOP_ALARM = "com.habitnudge.app.ACTION_STOP_ALARM"
 
         const val BRAND_ORANGE = 0xFFFF8A3D.toInt()
         const val BRAND_WARM_AMBER = 0xFFFFC078.toInt()
@@ -106,7 +108,7 @@ class NotificationHelper @Inject constructor(
                 soundToneUri = null
             )
 
-            // Create silent channel for quiet reminders
+            // Create silent channel for quiet reminders or foreground alarms
             ensureChannelExists(
                 channelId = resolveChannelId(soundEnabled = false, vibrationEnabled = false, soundToneUri = null),
                 soundEnabled = false,
@@ -116,7 +118,7 @@ class NotificationHelper @Inject constructor(
         }
     }
 
-    private fun ensureChannelExists(
+    fun ensureChannelExists(
         channelId: String,
         soundEnabled: Boolean,
         vibrationEnabled: Boolean,
@@ -125,7 +127,6 @@ class NotificationHelper @Inject constructor(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val existing = notificationManager.getNotificationChannel(channelId)
             if (existing != null) {
-                // Channel already configured; do not overwrite user-controlled system channel preferences
                 return
             }
 
@@ -164,6 +165,120 @@ class NotificationHelper @Inject constructor(
 
             notificationManager.createNotificationChannel(channel)
         }
+    }
+
+    fun buildAlarmNotification(
+        habit: HabitEntity,
+        reminderId: Long,
+        notificationId: Int,
+        isRinging: Boolean = true
+    ): Notification {
+        // When foreground service alarm is ringing, channel sound is silenced on notification so MediaPlayer handles repeating sound
+        val silentChannelId = resolveChannelId(soundEnabled = false, vibrationEnabled = false, soundToneUri = null)
+        ensureChannelExists(silentChannelId, soundEnabled = false, vibrationEnabled = false, soundToneUri = null)
+
+        val identity = HabitNotificationRegistry.getIdentity(habit.id, habit.title)
+        val fullTitle = "${identity.emoji} ${habit.title}"
+        val message = identity.message
+
+        val contentIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(EXTRA_HABIT_ID, habit.id)
+        }
+        val contentPendingIntent = PendingIntent.getActivity(
+            context,
+            notificationId,
+            contentIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Stop Alarm Action
+        val stopAlarmIntent = Intent(context, HabitNotificationActionReceiver::class.java).apply {
+            action = ACTION_STOP_ALARM
+            putExtra(EXTRA_HABIT_ID, habit.id)
+            putExtra(EXTRA_REMINDER_ID, reminderId)
+            putExtra(EXTRA_NOTIFICATION_ID, notificationId)
+        }
+        val stopAlarmPendingIntent = PendingIntent.getBroadcast(
+            context,
+            notificationId * 10 + 4,
+            stopAlarmIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Mark Done Action
+        val markDoneIntent = Intent(context, HabitNotificationActionReceiver::class.java).apply {
+            action = ACTION_MARK_DONE
+            putExtra(EXTRA_HABIT_ID, habit.id)
+            putExtra(EXTRA_REMINDER_ID, reminderId)
+            putExtra(EXTRA_NOTIFICATION_ID, notificationId)
+        }
+        val markDonePendingIntent = PendingIntent.getBroadcast(
+            context,
+            notificationId * 10 + 1,
+            markDoneIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Snooze 10m Action
+        val snooze10Intent = Intent(context, HabitNotificationActionReceiver::class.java).apply {
+            action = ACTION_SNOOZE
+            putExtra(EXTRA_HABIT_ID, habit.id)
+            putExtra(EXTRA_REMINDER_ID, reminderId)
+            putExtra(EXTRA_NOTIFICATION_ID, notificationId)
+            putExtra(EXTRA_SNOOZE_MINUTES, 10)
+        }
+        val snooze10PendingIntent = PendingIntent.getBroadcast(
+            context,
+            notificationId * 10 + 2,
+            snooze10Intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val largeIcon = NotificationIconGenerator.createHabitLargeIconSafe(
+            context = context,
+            emoji = identity.emoji,
+            accentColorHex = identity.accentColorHex
+        )
+
+        val builder = NotificationCompat.Builder(context, silentChannelId)
+            .setSmallIcon(R.drawable.ic_stat_nudge)
+            .setColor(BRAND_ORANGE)
+            .setContentTitle(fullTitle)
+            .setContentText(message)
+            .setSubText(if (isRinging) "Alarm Ringing • Habit Nudge" else "Habit Nudge")
+            .setStyle(
+                NotificationCompat.BigTextStyle()
+                    .setBigContentTitle(fullTitle)
+                    .setSummaryText(if (isRinging) "🔔 Repeating Alarm Active" else "Habit Nudge • ${identity.category}")
+                    .bigText(message)
+            )
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setOngoing(isRinging)
+            .setAutoCancel(!isRinging)
+            .setShowWhen(true)
+            .setWhen(System.currentTimeMillis())
+            .setContentIntent(contentPendingIntent)
+            .setDeleteIntent(stopAlarmPendingIntent) // Swiping away stops the alarm sound immediately
+            .setGroup(GROUP_KEY_HABIT_REMINDERS)
+            .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_ALL)
+
+        if (isRinging) {
+            builder.addAction(0, "Stop Alarm", stopAlarmPendingIntent)
+            builder.addAction(0, "Mark Done", markDonePendingIntent)
+            builder.addAction(0, "Snooze 10m", snooze10PendingIntent)
+        } else {
+            builder.addAction(0, "Mark Done", markDonePendingIntent)
+            builder.addAction(0, "Snooze 10m", snooze10PendingIntent)
+        }
+
+        if (largeIcon != null) {
+            builder.setLargeIcon(largeIcon)
+        }
+
+        return builder.build()
     }
 
     suspend fun showHabitNotification(
@@ -209,7 +324,6 @@ class NotificationHelper @Inject constructor(
         val identity = HabitNotificationRegistry.getIdentity(habit.id, habit.title)
         val message = customMessage ?: identity.message
 
-        // Content Intent: Opens habit detail screen in MainActivity
         val contentIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             putExtra(EXTRA_HABIT_ID, habit.id)
@@ -301,7 +415,6 @@ class NotificationHelper @Inject constructor(
             builder.setLargeIcon(largeIcon)
         }
 
-        // Silent mode only if both sound and vibration are turned off
         if (!settings.reminderSoundEnabled && !settings.reminderVibrationEnabled) {
             builder.setSilent(true)
         }

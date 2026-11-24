@@ -31,13 +31,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.NotificationsActive
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.Warning
@@ -50,6 +51,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -81,6 +84,7 @@ import com.habitnudge.app.reminder.AlarmScheduler
 import com.habitnudge.app.reminder.HabitNotificationIdentity
 import com.habitnudge.app.reminder.HabitNotificationRegistry
 import com.habitnudge.app.reminder.NotificationHelper
+import com.habitnudge.app.reminder.alarm.HabitAlarmSoundService
 import com.habitnudge.app.ui.components.HabitNudgeBottomBar
 import com.habitnudge.app.ui.components.SectionHeader
 import com.habitnudge.app.ui.navigation.Screen
@@ -108,10 +112,12 @@ fun SettingsScreen(
 
     var showResetDialog by remember { mutableStateOf(false) }
     var showQuietHoursPicker by remember { mutableStateOf(false) }
-    var showTonePickerDialog by remember { mutableStateOf(false) }
+    var showNotificationToneDialog by remember { mutableStateOf(false) }
+    var showAlarmToneDialog by remember { mutableStateOf(false) }
+    var showDurationDialog by remember { mutableStateOf(false) }
     var testNotificationFeedback by remember { mutableStateOf<String?>(null) }
+    var isTestAlarmRinging by remember { mutableStateOf(false) }
 
-    // Habit preview selection state
     val identities = remember { HabitNotificationRegistry.getAllIdentities() }
     var selectedPreviewHabitId by remember { mutableStateOf(identities.firstOrNull()?.habitId ?: "daily_hydration") }
     val currentPreviewIdentity = remember(selectedPreviewHabitId) {
@@ -161,7 +167,7 @@ fun SettingsScreen(
                 }
             }
 
-            // System permission warning banner if notifications are blocked at OS level
+            // OS Level permission warning
             if (!areSystemNotificationsEnabled) {
                 item {
                     Box(
@@ -170,9 +176,7 @@ fun SettingsScreen(
                             .clip(RoundedCornerShape(Dimens.radiusMedium))
                             .background(WarningGold.copy(alpha = 0.15f))
                             .border(1.dp, WarningGold, RoundedCornerShape(Dimens.radiusMedium))
-                            .clickable {
-                                openSystemAppNotificationSettings(context)
-                            }
+                            .clickable { openSystemAppNotificationSettings(context) }
                             .padding(14.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -196,17 +200,13 @@ fun SettingsScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            Icon(
-                                Icons.Default.ChevronRight,
-                                contentDescription = null,
-                                tint = WarningGold
-                            )
+                            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = WarningGold)
                         }
                     }
                 }
             }
 
-            // Theme Setting
+            // Appearance
             item {
                 SectionHeader(title = "Appearance", subtitle = "App color styling")
                 Spacer(modifier = Modifier.height(4.dp))
@@ -249,7 +249,190 @@ fun SettingsScreen(
                 }
             }
 
-            // Notification Preview & Design Showcase
+            // Repeating Alarm Sound Engine (Highlighted Section)
+            item {
+                SectionHeader(
+                    title = "Repeating Alarm Sound Engine",
+                    subtitle = "Attention-grabbing looping alarm playback"
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(Dimens.radiusMedium))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .border(1.5.dp, AccentOrange.copy(alpha = 0.6f), RoundedCornerShape(Dimens.radiusMedium))
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    // Master Repeating Alarm toggle
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    "Repeating Alarm Sound",
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            }
+                            Text(
+                                "Loops audio continuously until responded to",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = userSettings.repeatingAlarmEnabled,
+                            onCheckedChange = { scope.launch { preferencesRepository.setRepeatingAlarmEnabled(it) } },
+                            colors = SwitchDefaults.colors(checkedTrackColor = AccentOrange)
+                        )
+                    }
+
+                    if (userSettings.repeatingAlarmEnabled) {
+                        // Alarm Tone Selection Row
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(Dimens.radiusSmall))
+                                .background(MaterialTheme.colorScheme.surface)
+                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(Dimens.radiusSmall))
+                                .clickable { showAlarmToneDialog = true }
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                                Icon(Icons.Default.Alarm, contentDescription = null, tint = AccentOrange, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        "Alarm Tone",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.onBackground
+                                    )
+                                    Text(
+                                        userSettings.alarmToneTitle,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = AccentOrange
+                                    )
+                                }
+                            }
+                            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+
+                        // Alarm Volume Slider
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(Dimens.radiusSmall))
+                                .background(MaterialTheme.colorScheme.surface)
+                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(Dimens.radiusSmall))
+                                .padding(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.VolumeUp, contentDescription = null, tint = AccentOrange, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Alarm Volume", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onBackground)
+                                }
+                                Text(
+                                    "${(userSettings.alarmVolume * 100).toInt()}%",
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = AccentOrange
+                                )
+                            }
+                            Slider(
+                                value = userSettings.alarmVolume,
+                                onValueChange = { scope.launch { preferencesRepository.setAlarmVolume(it) } },
+                                valueRange = 0.05f..1.0f,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = AccentOrange,
+                                    activeTrackColor = AccentOrange,
+                                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                                )
+                            )
+                        }
+
+                        // Maximum Ringing Duration Row
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(Dimens.radiusSmall))
+                                .background(MaterialTheme.colorScheme.surface)
+                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(Dimens.radiusSmall))
+                                .clickable { showDurationDialog = true }
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Auto-Stop Ringing Timeout", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onBackground)
+                                Text(
+                                    "${userSettings.alarmMaxDurationSeconds} seconds (Prevents infinite ringing)",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = AccentOrange
+                                )
+                            }
+                            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+
+                        // Test Repeating Alarm Button
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (!isTestAlarmRinging) {
+                                Button(
+                                    onClick = {
+                                        isTestAlarmRinging = true
+                                        HabitAlarmSoundService.startAlarm(
+                                            context = context,
+                                            habitId = selectedPreviewHabitId,
+                                            reminderId = -1L,
+                                            maxDurationSeconds = userSettings.alarmMaxDurationSeconds,
+                                            volume = userSettings.alarmVolume,
+                                            toneUri = userSettings.alarmToneUri,
+                                            vibrationEnabled = userSettings.reminderVibrationEnabled,
+                                            isTest = true
+                                        )
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = AccentOrange),
+                                    shape = RoundedCornerShape(Dimens.radiusPill),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(Icons.Default.Alarm, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Test Repeating Alarm Sound", color = Color.White, fontWeight = FontWeight.Bold)
+                                }
+                            } else {
+                                Button(
+                                    onClick = {
+                                        isTestAlarmRinging = false
+                                        HabitAlarmSoundService.stopAlarm(context)
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
+                                    shape = RoundedCornerShape(Dimens.radiusPill),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(Icons.Default.Stop, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Stop Alarm Now", color = Color.White, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Notification Experience & Preview
             item {
                 SectionHeader(
                     title = "Notification Experience",
@@ -296,9 +479,7 @@ fun SettingsScreen(
                                         if (isSelected) accentCol else MaterialTheme.colorScheme.outline,
                                         RoundedCornerShape(Dimens.radiusPill)
                                     )
-                                    .clickable {
-                                        selectedPreviewHabitId = identity.habitId
-                                    }
+                                    .clickable { selectedPreviewHabitId = identity.habitId }
                                     .padding(horizontal = 12.dp, vertical = 6.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -333,22 +514,15 @@ fun SettingsScreen(
                                 testNotificationFeedback = null
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentOrange),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface),
                         shape = RoundedCornerShape(Dimens.radiusPill),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, AccentOrange, RoundedCornerShape(Dimens.radiusPill))
                     ) {
-                        Icon(
-                            Icons.Default.NotificationsActive,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
+                        Icon(Icons.Default.NotificationsActive, contentDescription = null, tint = AccentOrange, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "Send Test Notification",
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                            color = Color.White
-                        )
+                        Text("Send Standard Notification Test", color = AccentOrange, fontWeight = FontWeight.SemiBold)
                     }
 
                     AnimatedVisibility(
@@ -365,11 +539,11 @@ fun SettingsScreen(
                 }
             }
 
-            // Smart Sound Engine & Quiet Hours
+            // General Delivery & Quiet Hours
             item {
                 SectionHeader(
-                    title = "Smart Sound & Delivery",
-                    subtitle = "Chime engine, haptics and quiet hours"
+                    title = "General Delivery & Haptics",
+                    subtitle = "One-shot sound, vibration and quiet hours"
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Column(
@@ -403,54 +577,21 @@ fun SettingsScreen(
                         )
                     }
 
-                    // Sound Toggle
+                    // Notification Tone (One-shot)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Reminder Sound", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-                            Text("Play chime for habit reminders", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Standard Reminder Sound", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+                            Text("One-shot chime when repeating alarm is off", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Switch(
                             checked = userSettings.reminderSoundEnabled,
                             onCheckedChange = { scope.launch { preferencesRepository.setSoundEnabled(it) } },
                             colors = SwitchDefaults.colors(checkedTrackColor = AccentOrange)
                         )
-                    }
-
-                    // Notification Tone Selection Row
-                    if (userSettings.reminderSoundEnabled) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(Dimens.radiusSmall))
-                                .background(MaterialTheme.colorScheme.surface)
-                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(Dimens.radiusSmall))
-                                .clickable { showTonePickerDialog = true }
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                                Icon(Icons.Default.MusicNote, contentDescription = null, tint = AccentOrange, modifier = Modifier.size(20.dp))
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column {
-                                    Text(
-                                        "Notification Tone",
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = MaterialTheme.colorScheme.onBackground
-                                    )
-                                    Text(
-                                        userSettings.soundToneTitle,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = AccentOrange
-                                    )
-                                }
-                            }
-                            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
                     }
 
                     // Vibration Toggle
@@ -461,7 +602,7 @@ fun SettingsScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Tactile Vibration", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-                            Text("Distinct double-pulse haptic cue", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Haptic pulses during reminders and alarms", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Switch(
                             checked = userSettings.reminderVibrationEnabled,
@@ -505,7 +646,7 @@ fun SettingsScreen(
                         )
                     }
 
-                    // Android System Channel Settings row
+                    // Android System Channel Settings
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -528,16 +669,8 @@ fun SettingsScreen(
                             Icon(Icons.Default.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
-                                Text(
-                                    "Android Channel Settings",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                                Text(
-                                    "Inspect system notification channel & overrides",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                Text("Android Channel Settings", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onBackground)
+                                Text("Inspect system notification channel & overrides", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                         Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -696,17 +829,93 @@ fun SettingsScreen(
         )
     }
 
-    // Notification Tone Selection Dialog
-    if (showTonePickerDialog) {
+    // Alarm Tone Picker Dialog
+    if (showAlarmToneDialog) {
         TonePickerDialog(
             context = context,
+            ringtoneType = RingtoneManager.TYPE_ALARM,
+            defaultTitle = "Default alarm sound",
+            currentUri = userSettings.alarmToneUri,
+            currentTitle = userSettings.alarmToneTitle,
+            onDismiss = { showAlarmToneDialog = false },
+            onSelectTone = { uri, title ->
+                scope.launch {
+                    preferencesRepository.setAlarmTone(uri, title)
+                    showAlarmToneDialog = false
+                }
+            }
+        )
+    }
+
+    // Standard Notification Tone Picker Dialog
+    if (showNotificationToneDialog) {
+        TonePickerDialog(
+            context = context,
+            ringtoneType = RingtoneManager.TYPE_NOTIFICATION,
+            defaultTitle = "Default notification tone",
             currentUri = userSettings.soundToneUri,
             currentTitle = userSettings.soundToneTitle,
-            onDismiss = { showTonePickerDialog = false },
+            onDismiss = { showNotificationToneDialog = false },
             onSelectTone = { uri, title ->
                 scope.launch {
                     preferencesRepository.setSoundTone(uri, title)
-                    showTonePickerDialog = false
+                    showNotificationToneDialog = false
+                }
+            }
+        )
+    }
+
+    // Max Ringing Duration Dialog
+    if (showDurationDialog) {
+        val durations = listOf(30, 60, 90, 120, 300)
+        AlertDialog(
+            onDismissRequest = { showDurationDialog = false },
+            title = { Text("Auto-Stop Ringing Timeout") },
+            text = {
+                Column {
+                    durations.forEach { seconds ->
+                        val isSelected = userSettings.alarmMaxDurationSeconds == seconds
+                        val label = when (seconds) {
+                            60 -> "60 seconds (Recommended)"
+                            120 -> "2 minutes"
+                            300 -> "5 minutes"
+                            else -> "$seconds seconds"
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(Dimens.radiusSmall))
+                                .background(if (isSelected) AccentOrange.copy(alpha = 0.15f) else Color.Transparent)
+                                .clickable {
+                                    scope.launch {
+                                        preferencesRepository.setAlarmMaxDurationSeconds(seconds)
+                                        showDurationDialog = false
+                                    }
+                                }
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = isSelected,
+                                onClick = null,
+                                colors = RadioButtonDefaults.colors(selectedColor = AccentOrange)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                ),
+                                color = if (isSelected) AccentOrange else MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showDurationDialog = false }) {
+                    Text("Cancel")
                 }
             }
         )
@@ -744,11 +953,7 @@ private fun NotificationPreviewCard(identity: HabitNotificationIdentity) {
                             .background(AccentOrange),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "⚡",
-                            fontSize = 10.sp,
-                            color = Color.White
-                        )
+                        Text(text = "⚡", fontSize = 10.sp, color = Color.White)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
@@ -779,7 +984,6 @@ private fun NotificationPreviewCard(identity: HabitNotificationIdentity) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top
             ) {
-                // Large Circular Icon
                 Box(
                     modifier = Modifier
                         .size(46.dp)
@@ -788,10 +992,7 @@ private fun NotificationPreviewCard(identity: HabitNotificationIdentity) {
                         .border(1.5.dp, Color.White.copy(alpha = 0.35f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = identity.emoji,
-                        fontSize = 24.sp
-                    )
+                    Text(text = identity.emoji, fontSize = 24.sp)
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))
@@ -825,6 +1026,22 @@ private fun NotificationPreviewCard(identity: HabitNotificationIdentity) {
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(Dimens.radiusPill))
+                        .background(Color(0xFFE53935).copy(alpha = 0.25f))
+                        .border(1.dp, Color(0xFFE53935).copy(alpha = 0.6f), RoundedCornerShape(Dimens.radiusPill))
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = "Stop Alarm",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFFF6B6B)
+                        )
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(Dimens.radiusPill))
                         .background(AccentOrange.copy(alpha = 0.25f))
                         .border(1.dp, AccentOrange.copy(alpha = 0.6f), RoundedCornerShape(Dimens.radiusPill))
                         .padding(horizontal = 10.dp, vertical = 6.dp)
@@ -853,22 +1070,6 @@ private fun NotificationPreviewCard(identity: HabitNotificationIdentity) {
                         )
                     )
                 }
-
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(Dimens.radiusPill))
-                        .background(Color(0xFF2C3240))
-                        .border(1.dp, Color(0xFF3E4759), RoundedCornerShape(Dimens.radiusPill))
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = "Snooze 30m",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Medium,
-                            color = Color(0xFFCBD2DF)
-                        )
-                    )
-                }
             }
         }
     }
@@ -877,6 +1078,8 @@ private fun NotificationPreviewCard(identity: HabitNotificationIdentity) {
 @Composable
 private fun TonePickerDialog(
     context: Context,
+    ringtoneType: Int,
+    defaultTitle: String,
     currentUri: String,
     currentTitle: String,
     onDismiss: () -> Unit,
@@ -888,10 +1091,10 @@ private fun TonePickerDialog(
 
     val tones = remember {
         val list = mutableListOf<ToneItem>()
-        list.add(ToneItem(title = "Default notification tone", uriString = ""))
+        list.add(ToneItem(title = defaultTitle, uriString = ""))
         try {
             val ringtoneManager = RingtoneManager(context).apply {
-                setType(RingtoneManager.TYPE_NOTIFICATION)
+                setType(ringtoneType)
             }
             val cursor = ringtoneManager.cursor
             while (cursor.moveToNext()) {
@@ -916,7 +1119,7 @@ private fun TonePickerDialog(
             currentlyPlayingRingtone?.stop()
             onDismiss()
         },
-        title = { Text("Select Notification Tone") },
+        title = { Text(if (ringtoneType == RingtoneManager.TYPE_ALARM) "Select Alarm Tone" else "Select Notification Tone") },
         text = {
             LazyColumn(modifier = Modifier.height(280.dp)) {
                 items(tones) { item ->
@@ -934,7 +1137,7 @@ private fun TonePickerDialog(
                                 currentlyPlayingRingtone?.stop()
                                 try {
                                     val uriToPlay = if (item.uriString.isEmpty()) {
-                                        RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                                        RingtoneManager.getDefaultUri(ringtoneType)
                                     } else {
                                         Uri.parse(item.uriString)
                                     }
